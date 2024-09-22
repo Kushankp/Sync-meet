@@ -1,6 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { initializeGapiClient, listUpcomingEvents } from '../services/googleCalenderApi';
-import AuthButton from './AuthButton'; // Correct default import
+import AuthButton from './AuthButton'; // Assumes you have an AuthButton component
 
 function GoogleCalendar() {
   const [gapiInited, setGapiInited] = useState(false);
@@ -8,56 +7,91 @@ function GoogleCalendar() {
   const [tokenClient, setTokenClient] = useState(null);
   const [events, setEvents] = useState([]);
 
+  // Initialize Google API Client
   const gapiLoaded = useCallback(() => {
-    window.gapi.load('client', initializeGapiClient);
-    setGapiInited(true);
+    window.gapi.load('client', async () => {
+      await window.gapi.client.init({
+        apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+      });
+      setGapiInited(true);
+    });
   }, []);
 
+  // Initialize Google Identity Services (GIS)
   const gisLoaded = useCallback(() => {
-    const tokenClient = window.google.accounts.oauth2.initTokenClient({
+    const tokenClient = window.google.accounts.oauth2.initCodeClient({
       client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
       scope: 'https://www.googleapis.com/auth/calendar.readonly',
-      callback: null, // No need to define the callback here
+      ux_mode: 'popup',
+      callback: (resp) => {
+        if (resp.error) {
+          console.error('Authorization error', resp.error);
+          return;
+        }
+        // Handle the authorization code and exchange for access token
+        handleAuthCode(resp.code);
+      },
     });
     setTokenClient(tokenClient);
     setGisInited(true);
   }, []);
 
-  const handleAuthClick = useCallback(() => {
-    if (!tokenClient) return; // Ensure tokenClient is initialized
-    tokenClient.callback = async (resp) => {
-      if (resp.error !== undefined) {
-        throw resp;
-      }
-      await fetchEvents();
-    };
+  // Exchange authorization code for access token
+  const handleAuthCode = async (code) => {
+    try {
+      const tokenResponse = await fetch('http://localhost:5000/api/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
 
-    if (window.gapi.client.getToken() === null) {
-      tokenClient.requestAccessToken({ prompt: 'consent' });
-    } else {
-      tokenClient.requestAccessToken({ prompt: '' });
+      if (!tokenResponse.ok) throw new Error('Failed to exchange token');
+
+      const { access_token } = await tokenResponse.json();
+
+      // Fetch Google Calendar events using the access token
+      fetchEvents(access_token);
+    } catch (error) {
+      console.error('Error during token exchange', error);
+    }
+  };
+
+  // Fetch Google Calendar events using access token
+  const fetchEvents = async (access_token) => {
+    try {
+      const eventsResponse = await fetch(`http://localhost:5000/api/events?access_token=${access_token}`);
+      if (!eventsResponse.ok) throw new Error('Failed to fetch events');
+  
+      const eventsData = await eventsResponse.json();
+      setEvents(eventsData.items || []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setEvents(['Error fetching events']);
+    }
+  };
+  
+
+  // Trigger Google OAuth authorization
+  const handleAuthClick = useCallback(() => {
+    if (tokenClient) {
+      tokenClient.requestCode();
     }
   }, [tokenClient]);
 
+  // Handle sign-out
   const handleSignoutClick = useCallback(() => {
     const token = window.gapi.client.getToken();
-    if (token !== null) {
+    if (token) {
       window.google.accounts.oauth2.revoke(token.access_token);
       window.gapi.client.setToken('');
       setEvents([]); // Clear events on signout
     }
   }, []);
 
-  const fetchEvents = async () => {
-    try {
-      const eventList = await listUpcomingEvents();
-      setEvents(eventList);
-    } catch (error) {
-      console.error('Error fetching events', error);
-      setEvents(['Error fetching events']);
-    }
-  };
-
+  // Load Google API and GIS scripts
   useEffect(() => {
     const script1 = document.createElement('script');
     script1.src = 'https://apis.google.com/js/api.js';
@@ -83,8 +117,8 @@ function GoogleCalendar() {
     <div>
       <p>Google Calendar API</p>
       <AuthButton onClick={handleAuthClick} disabled={!gapiInited || !gisInited} text="Authorize" />
-      <AuthButton onClick={handleSignoutClick} disabled={false} text="Sign Out" />
-      <pre>{events.length ? `Events:\n${events.join('\n')}` : 'No events found'}</pre>
+      <AuthButton onClick={handleSignoutClick} disabled={!tokenClient} text="Sign Out" />
+      <pre>{events.length ? `Events:\n${events.map(event => event.summary).join('\n')}` : 'No events found'}</pre>
     </div>
   );
 }

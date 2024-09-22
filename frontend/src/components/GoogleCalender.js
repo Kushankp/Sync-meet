@@ -38,20 +38,20 @@ function GoogleCalendar() {
     }
   }, [searchParams]);
 
-  const handleAuthClick = useCallback(() => {
-    if (!tokenClient) return;
+  // const handleAuthClick = useCallback(() => {
+  //   if (!tokenClient) return;
 
-    tokenClient.callback = async (resp) => {
-      if (resp.error) throw resp;
-      await fetchEvents();
-    };
+  //   tokenClient.callback = async (resp) => {
+  //     if (resp.error) throw resp;
+  //     await fetchEvents();
+  //   };
 
-    if (window.gapi.client.getToken() === null) {
-      tokenClient.requestAccessToken({ prompt: 'consent' });
-    } else {
-      tokenClient.requestAccessToken({ prompt: '' });
-    }
-  }, [tokenClient, fetchEvents]);
+  //   if (window.gapi.client.getToken() === null) {
+  //     tokenClient.requestAccessToken({ prompt: 'consent' });
+  //   } else {
+  //     tokenClient.requestAccessToken({ prompt: '' });
+  //   }
+  // }, [tokenClient, fetchEvents]);
 
   useEffect(() => {
     const script1 = document.createElement('script');
@@ -77,7 +77,7 @@ function GoogleCalendar() {
   return (
     <div>
       <p>Google Calendar API</p>
-      <button onClick={handleAuthClick} style={{color:'red'}}>Authorize</button>
+      {/* <button onClick={handleAuthClick} style={{color:'red'}}>Authorize</button> */}
       <pre>{events.length ? `Events:\n${events.join('\n')}` : 'No events found'}</pre>
     </div>
   );

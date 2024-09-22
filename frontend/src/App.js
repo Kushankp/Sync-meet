@@ -1,5 +1,5 @@
 import React from 'react';
-import GoogleCalendar from './components/GoogleCalender';
+// import GoogleCalendar from './components/GoogleCalender';
 import QRCodeGenerator from './components/QrCodeGenerator';
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
   return (
     <div className="App">
       <h1>Google Calendar Integration</h1>
-      <GoogleCalendar />
+      {/* <GoogleCalendar /> */}
       <QRCodeGenerator userId={sampleUserId} /> {/* Include QR code generator */}
     </div>
   );

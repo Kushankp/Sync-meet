@@ -77,7 +77,7 @@ function GoogleCalendar() {
   return (
     <div>
       <p>Google Calendar API</p>
-      <button onClick={handleAuthClick}>Authorize</button>
+      <button onClick={handleAuthClick} style={{color:'red'}}>Authorize</button>
       <pre>{events.length ? `Events:\n${events.join('\n')}` : 'No events found'}</pre>
     </div>
   );

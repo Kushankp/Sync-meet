@@ -1,12 +1,14 @@
 import React, { useEffect, useCallback, useState } from 'react';
+import { useSearchParams } from 'react-router-dom'; // Assuming you're using react-router
 import { initializeGapiClient, listUpcomingEvents } from '../services/googleCalenderApi';
-import AuthButton from './AuthButton'; // Correct default import
+import AuthButton from './AuthButton';
 
 function GoogleCalendar() {
   const [gapiInited, setGapiInited] = useState(false);
   const [gisInited, setGisInited] = useState(false);
   const [tokenClient, setTokenClient] = useState(null);
   const [events, setEvents] = useState([]);
+  const [searchParams] = useSearchParams();
 
   const gapiLoaded = useCallback(() => {
     window.gapi.load('client', initializeGapiClient);
@@ -23,13 +25,34 @@ function GoogleCalendar() {
     setGisInited(true);
   }, []);
 
+  // Wrap fetchEvents in useCallback
+  const fetchEvents = useCallback(async () => {
+    try {
+      const eventList = await listUpcomingEvents();
+      setEvents(eventList);
+      // Send events to your backend/database here
+      const userId = searchParams.get('userId'); // Fetch userId from QR code URL
+      await fetch('/api/save-events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, events: eventList }),
+      });
+    } catch (error) {
+      console.error('Error fetching events', error);
+      setEvents(['Error fetching events']);
+    }
+  }, [searchParams]);
+
   const handleAuthClick = useCallback(() => {
-    if (!tokenClient) return; // Ensure tokenClient is initialized
+    if (!tokenClient) return;
+
     tokenClient.callback = async (resp) => {
       if (resp.error !== undefined) {
         throw resp;
       }
-      await fetchEvents();
+      await fetchEvents(); // Call fetchEvents after receiving token
     };
 
     if (window.gapi.client.getToken() === null) {
@@ -37,26 +60,7 @@ function GoogleCalendar() {
     } else {
       tokenClient.requestAccessToken({ prompt: '' });
     }
-  }, [tokenClient]);
-
-  const handleSignoutClick = useCallback(() => {
-    const token = window.gapi.client.getToken();
-    if (token !== null) {
-      window.google.accounts.oauth2.revoke(token.access_token);
-      window.gapi.client.setToken('');
-      setEvents([]); // Clear events on signout
-    }
-  }, []);
-
-  const fetchEvents = async () => {
-    try {
-      const eventList = await listUpcomingEvents();
-      setEvents(eventList);
-    } catch (error) {
-      console.error('Error fetching events', error);
-      setEvents(['Error fetching events']);
-    }
-  };
+  }, [tokenClient, fetchEvents]);
 
   useEffect(() => {
     const script1 = document.createElement('script');
@@ -83,7 +87,6 @@ function GoogleCalendar() {
     <div>
       <p>Google Calendar API</p>
       <AuthButton onClick={handleAuthClick} disabled={!gapiInited || !gisInited} text="Authorize" />
-      <AuthButton onClick={handleSignoutClick} disabled={false} text="Sign Out" />
       <pre>{events.length ? `Events:\n${events.join('\n')}` : 'No events found'}</pre>
     </div>
   );

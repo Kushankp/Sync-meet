@@ -17,7 +17,6 @@ function QRCodeGenerator({ userId }) {
   return (
     <div>
       <h3>Scan this QR code to sync your Google Calendar</h3>
-      <button onClick={handleButtonClick}>Generate QR Code</button>
       <Button onClick={handleButtonClick} text="Generate QR Code" />
       
       {/* Conditionally render the QR code */}

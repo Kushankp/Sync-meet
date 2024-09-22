@@ -1,6 +1,6 @@
 import React from 'react';
 
-function AuthButton({ onClick, disabled, text }) {
+function Button({ onClick, disabled, text }) {
   return (
     <button onClick={onClick} disabled={disabled}>
       {text}
@@ -8,4 +8,4 @@ function AuthButton({ onClick, disabled, text }) {
   );
 }
 
-export default AuthButton;
+export default Button;

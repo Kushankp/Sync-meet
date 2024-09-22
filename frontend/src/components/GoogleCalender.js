@@ -1,37 +1,30 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { useSearchParams } from 'react-router-dom'; // Assuming you're using react-router
+import { useSearchParams } from 'react-router-dom';
 import { initializeGapiClient, listUpcomingEvents } from '../services/googleCalenderApi';
-import AuthButton from './AuthButton';
 
 function GoogleCalendar() {
-  const [gapiInited, setGapiInited] = useState(false);
-  const [gisInited, setGisInited] = useState(false);
   const [tokenClient, setTokenClient] = useState(null);
   const [events, setEvents] = useState([]);
   const [searchParams] = useSearchParams();
 
   const gapiLoaded = useCallback(() => {
     window.gapi.load('client', initializeGapiClient);
-    setGapiInited(true);
   }, []);
 
   const gisLoaded = useCallback(() => {
-    const tokenClient = window.google.accounts.oauth2.initTokenClient({
+    const client = window.google.accounts.oauth2.initTokenClient({
       client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
       scope: 'https://www.googleapis.com/auth/calendar.readonly',
-      callback: null, // No need to define the callback here
     });
-    setTokenClient(tokenClient);
-    setGisInited(true);
+    setTokenClient(client);
   }, []);
 
-  // Wrap fetchEvents in useCallback
   const fetchEvents = useCallback(async () => {
     try {
       const eventList = await listUpcomingEvents();
       setEvents(eventList);
-      // Send events to your backend/database here
-      const userId = searchParams.get('userId'); // Fetch userId from QR code URL
+
+      const userId = searchParams.get('userId');
       await fetch('/api/save-events', {
         method: 'POST',
         headers: {
@@ -49,10 +42,8 @@ function GoogleCalendar() {
     if (!tokenClient) return;
 
     tokenClient.callback = async (resp) => {
-      if (resp.error !== undefined) {
-        throw resp;
-      }
-      await fetchEvents(); // Call fetchEvents after receiving token
+      if (resp.error) throw resp;
+      await fetchEvents();
     };
 
     if (window.gapi.client.getToken() === null) {
@@ -86,7 +77,7 @@ function GoogleCalendar() {
   return (
     <div>
       <p>Google Calendar API</p>
-      <AuthButton onClick={handleAuthClick} disabled={!gapiInited || !gisInited} text="Authorize" />
+      <button onClick={handleAuthClick}>Authorize</button>
       <pre>{events.length ? `Events:\n${events.join('\n')}` : 'No events found'}</pre>
     </div>
   );

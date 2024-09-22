@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { initializeGapiClient, listUpcomingEvents } from '../services/googleCalenderApi';
+import '../../src/App.css'; // Import your CSS file
 
 function GoogleCalendar() {
   const [tokenClient, setTokenClient] = useState(null);
@@ -74,10 +75,25 @@ function GoogleCalendar() {
     };
   }, [gapiLoaded, gisLoaded]);
 
+  useEffect(() => {
+    // Apply custom styles to Google API buttons
+    const customizeGoogleButtons = () => {
+      const buttons = document.querySelectorAll('.g_id_signin'); // Change this class if necessary
+      buttons.forEach((button) => {
+        button.classList.add('google-button'); // Add your custom class
+      });
+    };
+
+    const observer = new MutationObserver(customizeGoogleButtons);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div>
       <p>Google Calendar API</p>
-      <button onClick={handleAuthClick}>Authorize</button>
+      <button onClick={handleAuthClick} className="google-button">Authorize</button>
       <pre>{events.length ? `Events:\n${events.join('\n')}` : 'No events found'}</pre>
     </div>
   );

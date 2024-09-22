@@ -36,3 +36,19 @@
     transform: rotate(360deg);
   }
 }
+
+/* styles.css */
+.google-button {
+  background-color: #4285f4; /* Google blue */
+  color: white; /* Text color */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Add padding */
+  border-radius: 5px; /* Round corners */
+  cursor: pointer; /* Change cursor on hover */
+  transition: background-color 0.3s; /* Smooth background change */
+}
+
+/* Hover effect */
+.google-button:hover {
+  background-color: #357ae8; /* Darker shade on hover */
+}

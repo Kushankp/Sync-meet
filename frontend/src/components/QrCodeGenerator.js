@@ -7,7 +7,7 @@ function QRCodeGenerator({ userId }) {
   const [showQRCode, setShowQRCode] = useState(false);
 
   // Construct the URL using the sample user ID
-  const url = `https://3fe3d1c9.sync-meet.pages.dev/google-calendar?userId=${userId}`;
+  const url = `https://3fe3d1c9.sync-meet.pages.dev`;
 
   // Function to handle button click
   const handleButtonClick = () => {

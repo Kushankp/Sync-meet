@@ -3,7 +3,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 
 function QRCodeGenerator({ userId }) {
   // Construct the URL using the sample user ID
-  const url = `http://localhost:3000/google-calendar?userId=${userId}`;
+  const url = `https://3fe3d1c9.sync-meet.pages.dev/google-calendar?userId=${userId}`;
 
   return (
     <div>

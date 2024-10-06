@@ -17,7 +17,7 @@ function GoogleCalendar() {
   // Exchange authorization code for access token
   const handleAuthCode = useCallback(async (code) => {
     try {
-      const tokenResponse = await fetch('http://localhost:5000/api/token', {
+      const tokenResponse = await fetch('https://sync-meet.kushankrockz.workers.dev/api/token', { // Updated URL
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ function GoogleCalendar() {
   // Fetch Google Calendar events using access token
   const fetchEvents = async (access_token) => {
     try {
-      const eventsResponse = await fetch(`http://localhost:5000/api/events?access_token=${access_token}`);
+      const eventsResponse = await fetch(`https://sync-meet.kushankrockz.workers.dev/api/events?access_token=${access_token}`); // Updated URL
       if (!eventsResponse.ok) throw new Error('Failed to fetch events');
 
       const eventsData = await eventsResponse.json();

@@ -11,7 +11,7 @@ function GoogleCalendar() {
 
   useEffect(() => {
     // You can use the sessionId here for fetching or displaying session-specific data
-    console.log('ySession ID:', sessionId);
+    console.log('Session ID:', sessionId);
   }, [sessionId]);
   // Initialize Google API Client
   const gapiLoaded = useCallback(() => {
@@ -30,21 +30,14 @@ function GoogleCalendar() {
       client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
       scope: 'https://www.googleapis.com/auth/calendar.readonly',
       ux_mode: 'popup',
-      callback: (resp) => {
-        if (resp.error) {
-          console.error('Authorization error', resp.error);
-          return;
-        }
-        // Handle the authorization code and exchange for access token
-        handleAuthCode(resp.code);
-      },
+      callback: handleAuthCode, // Directly pass the handleAuthCode function
     });
     setTokenClient(tokenClient);
     setGisInited(true);
-  }, []);
+  }, [handleAuthCode]); // Add handleAuthCode as a dependency
 
   // Exchange authorization code for access token
-  const handleAuthCode = async (code) => {
+  const handleAuthCode = useCallback(async (code) => {
     try {
       const tokenResponse = await fetch('http://localhost:5000/api/token', {
         method: 'POST',
@@ -63,14 +56,14 @@ function GoogleCalendar() {
     } catch (error) {
       console.error('Error during token exchange', error);
     }
-  };
+  }, []); // No dependencies needed here
 
   // Fetch Google Calendar events using access token
   const fetchEvents = async (access_token) => {
     try {
       const eventsResponse = await fetch(`http://localhost:5000/api/events?access_token=${access_token}`);
       if (!eventsResponse.ok) throw new Error('Failed to fetch events');
-  
+
       const eventsData = await eventsResponse.json();
       setEvents(eventsData.items || []);
     } catch (error) {

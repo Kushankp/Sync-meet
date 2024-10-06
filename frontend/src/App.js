@@ -1,12 +1,17 @@
 import React from 'react';
-import GoogleCalendar from './components/GoogleCalender';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import QRCodeGenerator from './components/QRCodeGenerator';
+import GoogleCalendar from './components/GoogleCalender'; // Import the GoogleCalendar component
 
 function App() {
   return (
-    <div className="App">
-      <h1>Google Calendar Integration</h1>
-      <GoogleCalendar />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<QRCodeGenerator />} />
+        {/* This route navigates to GoogleCalendar.js with the session ID */}
+        <Route path="/google-calendar/:sessionId" element={<GoogleCalendar />} />
+      </Routes>
+    </Router>
   );
 }
 

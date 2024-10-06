@@ -1,12 +1,18 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import AuthButton from './AuthButton'; // Assumes you have an AuthButton component
+import { useParams } from 'react-router-dom';
 
 function GoogleCalendar() {
   const [gapiInited, setGapiInited] = useState(false);
   const [gisInited, setGisInited] = useState(false);
   const [tokenClient, setTokenClient] = useState(null);
   const [events, setEvents] = useState([]);
+  const { sessionId } = useParams(); // Extract the session ID from the URL
 
+  useEffect(() => {
+    // You can use the sessionId here for fetching or displaying session-specific data
+    console.log('ySession ID:', sessionId);
+  }, [sessionId]);
   // Initialize Google API Client
   const gapiLoaded = useCallback(() => {
     window.gapi.load('client', async () => {

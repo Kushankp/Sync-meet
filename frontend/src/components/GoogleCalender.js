@@ -13,28 +13,6 @@ function GoogleCalendar() {
     // You can use the sessionId here for fetching or displaying session-specific data
     console.log('Session ID:', sessionId);
   }, [sessionId]);
-  // Initialize Google API Client
-  const gapiLoaded = useCallback(() => {
-    window.gapi.load('client', async () => {
-      await window.gapi.client.init({
-        apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-      });
-      setGapiInited(true);
-    });
-  }, []);
-
-  // Initialize Google Identity Services (GIS)
-  const gisLoaded = useCallback(() => {
-    const tokenClient = window.google.accounts.oauth2.initCodeClient({
-      client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-      scope: 'https://www.googleapis.com/auth/calendar.readonly',
-      ux_mode: 'popup',
-      callback: handleAuthCode, // Directly pass the handleAuthCode function
-    });
-    setTokenClient(tokenClient);
-    setGisInited(true);
-  }, [handleAuthCode]); // Add handleAuthCode as a dependency
 
   // Exchange authorization code for access token
   const handleAuthCode = useCallback(async (code) => {
@@ -58,6 +36,29 @@ function GoogleCalendar() {
     }
   }, []); // No dependencies needed here
 
+  // Initialize Google API Client
+  const gapiLoaded = useCallback(() => {
+    window.gapi.load('client', async () => {
+      await window.gapi.client.init({
+        apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+      });
+      setGapiInited(true);
+    });
+  }, []);
+
+  // Initialize Google Identity Services (GIS)
+  const gisLoaded = useCallback(() => {
+    const tokenClient = window.google.accounts.oauth2.initCodeClient({
+      client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/calendar.readonly',
+      ux_mode: 'popup',
+      callback: handleAuthCode, // Use handleAuthCode here
+    });
+    setTokenClient(tokenClient);
+    setGisInited(true);
+  }, [handleAuthCode]); // Add handleAuthCode as a dependency
+
   // Fetch Google Calendar events using access token
   const fetchEvents = async (access_token) => {
     try {
@@ -71,7 +72,6 @@ function GoogleCalendar() {
       setEvents(['Error fetching events']);
     }
   };
-  
 
   // Trigger Google OAuth authorization
   const handleAuthClick = useCallback(() => {

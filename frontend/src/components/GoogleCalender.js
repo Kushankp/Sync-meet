@@ -1,23 +1,19 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import AuthButton from './AuthButton'; // Assumes you have an AuthButton component
-import { useParams } from 'react-router-dom';
 
 function GoogleCalendar() {
   const [gapiInited, setGapiInited] = useState(false);
   const [gisInited, setGisInited] = useState(false);
   const [tokenClient, setTokenClient] = useState(null);
   const [events, setEvents] = useState([]);
-  const { sessionId } = useParams(); // Extract the session ID from the URL
-
-  useEffect(() => {
-    // You can use the sessionId here for fetching or displaying session-specific data
-    console.log('Session ID:', sessionId);
-  }, [sessionId]);
 
   // Exchange authorization code for access token
-  const handleAuthCode = useCallback(async (code) => {
+  const handleAuthCode = useCallback(async (code, state) => {
     try {
-      const tokenResponse = await fetch('https://sync-meet.kushankrockz.workers.dev/api/token', { // Updated URL
+      const { sessionId } = JSON.parse(atob(state)); // Decode the state to retrieve the session ID
+      console.log('Session ID:', sessionId); // Log the session ID for debugging
+
+      const tokenResponse = await fetch('https://sync-meet.kushankrockz.workers.dev/api/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,7 +30,7 @@ function GoogleCalendar() {
     } catch (error) {
       console.error('Error during token exchange', error);
     }
-  }, []); // No dependencies needed here
+  }, []);
 
   // Initialize Google API Client
   const gapiLoaded = useCallback(() => {
@@ -53,16 +49,16 @@ function GoogleCalendar() {
       client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
       scope: 'https://www.googleapis.com/auth/calendar.readonly',
       ux_mode: 'popup',
-      callback: handleAuthCode, // Use handleAuthCode here
+      callback: (code, state) => handleAuthCode(code, state), // Use handleAuthCode here
     });
     setTokenClient(tokenClient);
     setGisInited(true);
-  }, [handleAuthCode]); // Add handleAuthCode as a dependency
+  }, [handleAuthCode]);
 
   // Fetch Google Calendar events using access token
   const fetchEvents = async (access_token) => {
     try {
-      const eventsResponse = await fetch(`https://sync-meet.kushankrockz.workers.dev/api/events?access_token=${access_token}`); // Updated URL
+      const eventsResponse = await fetch(`https://sync-meet.kushankrockz.workers.dev/api/events?access_token=${access_token}`);
       if (!eventsResponse.ok) throw new Error('Failed to fetch events');
 
       const eventsData = await eventsResponse.json();
@@ -76,7 +72,9 @@ function GoogleCalendar() {
   // Trigger Google OAuth authorization
   const handleAuthClick = useCallback(() => {
     if (tokenClient) {
-      tokenClient.requestCode();
+      const sessionId = ""; // Placeholder for sessionId, retrieve from your storage or pass appropriately
+      const state = btoa(JSON.stringify({ sessionId })); // Encode session ID into state
+      tokenClient.requestCode({ state }); // Pass state with session ID
     }
   }, [tokenClient]);
 

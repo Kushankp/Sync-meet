@@ -16,7 +16,8 @@ function QRCodeGenerator() {
   const handleScan = () => {
     // Navigate to the GoogleCalendar component with the session ID
     if (sessionId) {
-      navigate(`/google-calendar/${sessionId}`); // Navigate to GoogleCalendar.js with the session ID
+      const state = btoa(JSON.stringify({ sessionId })); // Encode session ID into state
+      navigate(`/google-calendar/${state}`); // Navigate to GoogleCalendar.js with the state parameter
     }
   };
 
@@ -28,7 +29,7 @@ function QRCodeGenerator() {
       {sessionId && (
         <div>
           <h3>Scan the QR Code:</h3>
-          <QRCodeCanvas value={`${window.location.origin}/google-calendar/${sessionId}`} size={256} />
+          <QRCodeCanvas value={`${window.location.origin}/google-calendar/${btoa(JSON.stringify({ sessionId }))}`} size={256} />
         </div>
       )}
 

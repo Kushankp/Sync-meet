@@ -9,20 +9,19 @@ function GoogleCalendar() {
 
   // Exchange authorization code for access token
   const handleAuthCode = useCallback(async (code) => {
+    console.log('Received auth code:', code); // Log the received code
     try {
       const tokenResponse = await fetch('https://sync-meet.kushankrockz.workers.dev/api/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code }), // No session ID involved
+        body: JSON.stringify({ code }), // Ensure you're sending the correct structure
       });
-
+  
       if (!tokenResponse.ok) throw new Error('Failed to exchange token');
-
+  
       const { access_token } = await tokenResponse.json();
-
-      // Fetch Google Calendar events using the access token
       fetchEvents(access_token);
     } catch (error) {
       console.error('Error during token exchange', error);

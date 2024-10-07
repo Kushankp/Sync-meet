@@ -99,7 +99,7 @@ function GoogleCalendar() {
     <div>
       <p>Google Calendar API</p>
       <AuthButton onClick={handleAuthClick} disabled={!gapiInited || !gisInited} text="Authorize" />
-      <AuthButton onClick={handleSignoutClick} disabled={!tokenClient} text="Sign Out" />
+      {/* <AuthButton onClick={handleSignoutClick} disabled={!tokenClient} text="Sign Out" /> */}
       <pre>{events.length ? `Events:\n${events.map(event => event.summary).join('\n')}` : 'No events found'}</pre>
     </div>
   );

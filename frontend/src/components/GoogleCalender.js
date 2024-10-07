@@ -1,11 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { useLocation } from 'react-router-dom'; // Import useLocation
 import AuthButton from './AuthButton'; // Assumes you have an AuthButton component
 
 function GoogleCalendar() {
-  const location = useLocation();
-  const { sessionId } = location.state || {}; // Access sessionId from location.state
-
   const [gapiInited, setGapiInited] = useState(false);
   const [gisInited, setGisInited] = useState(false);
   const [tokenClient, setTokenClient] = useState(null);
@@ -19,7 +15,7 @@ function GoogleCalendar() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code }), // No session ID involved
       });
 
       if (!tokenResponse.ok) throw new Error('Failed to exchange token');
@@ -72,23 +68,10 @@ function GoogleCalendar() {
 
   // Trigger Google OAuth authorization
   const handleAuthClick = useCallback(() => {
-    if (tokenClient && sessionId) {
-      const state = btoa(JSON.stringify({ sessionId })); // Encode session ID into state
-      tokenClient.requestCode({ state }); // Pass state with session ID
-    } else {
-      console.error('Token client or session ID is not available'); // Error handling
+    if (tokenClient) {
+      tokenClient.requestCode(); // No state to pass
     }
-  }, [tokenClient, sessionId]);
-
-  // Handle sign-out
-  const handleSignoutClick = useCallback(() => {
-    const token = window.gapi.client.getToken();
-    if (token) {
-      window.google.accounts.oauth2.revoke(token.access_token);
-      window.gapi.client.setToken('');
-      setEvents([]); // Clear events on signout
-    }
-  }, []);
+  }, [tokenClient]);
 
   // Load Google API and GIS scripts
   useEffect(() => {

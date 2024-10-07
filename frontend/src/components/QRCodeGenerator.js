@@ -1,23 +1,20 @@
 import React, { useState } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
-import { v4 as uuidv4 } from 'uuid';
+import { QRCodeCanvas } from 'qrcode.react'; // For generating the QR Code
 import { useNavigate } from 'react-router-dom';
 
 function QRCodeGenerator() {
-  const [sessionId, setSessionId] = useState(null);
+  const [userId, setUserId] = useState(null); // Optional: You can use a unique identifier for users
   const navigate = useNavigate();
 
-  // Generate QR code with a unique session ID
+  // Generate QR code without session ID
   const generateQRCode = () => {
-    const newSessionId = uuidv4(); // Generate a unique session ID
-    setSessionId(newSessionId); // Save the session ID
+    const userId = new Date().getTime(); // Example: Use a timestamp as a unique user ID
+    setUserId(userId);    // Save the user ID
   };
 
   const handleScan = () => {
-    // Navigate to the GoogleCalendar component without URL params
-    if (sessionId) {
-      navigate('/google-calendar', { state: { sessionId }}); // Pass sessionId in state
-    }
+    // Navigate to the GoogleCalendar component without session ID
+    navigate(`/google-calendar`); // Just navigate to GoogleCalendar.js
   };
 
   return (
@@ -25,7 +22,7 @@ function QRCodeGenerator() {
       <h1>QR Code Generator</h1>
       <button onClick={generateQRCode}>Generate QR Code</button>
 
-      {sessionId && (
+      {userId && (
         <div>
           <h3>Scan the QR Code:</h3>
           <QRCodeCanvas value={`${window.location.origin}/google-calendar`} size={256} />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { QRCodeCanvas } from 'qrcode.react'; // For generating the QR Code
-import { v4 as uuidv4 } from 'uuid';   // For generating unique session IDs
+import { QRCodeCanvas } from 'qrcode.react';
+import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 
 function QRCodeGenerator() {
@@ -10,14 +10,13 @@ function QRCodeGenerator() {
   // Generate QR code with a unique session ID
   const generateQRCode = () => {
     const newSessionId = uuidv4(); // Generate a unique session ID
-    setSessionId(newSessionId);    // Save the session ID
+    setSessionId(newSessionId); // Save the session ID
   };
 
   const handleScan = () => {
-    // Navigate to the GoogleCalendar component with the session ID
+    // Navigate to the GoogleCalendar component without URL params
     if (sessionId) {
-      const state = btoa(JSON.stringify({ sessionId })); // Encode session ID into state
-      navigate(`/google-calendar/${state}`); // Navigate to GoogleCalendar.js with the state parameter
+      navigate('/google-calendar', { state: { sessionId }}); // Pass sessionId in state
     }
   };
 
@@ -29,7 +28,7 @@ function QRCodeGenerator() {
       {sessionId && (
         <div>
           <h3>Scan the QR Code:</h3>
-          <QRCodeCanvas value={`${window.location.origin}/google-calendar/${btoa(JSON.stringify({ sessionId }))}`} size={256} />
+          <QRCodeCanvas value={`${window.location.origin}/google-calendar`} size={256} />
         </div>
       )}
 

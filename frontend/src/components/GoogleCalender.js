@@ -1,18 +1,19 @@
 import React, { useEffect, useCallback, useState } from 'react';
+import { useLocation } from 'react-router-dom'; // Import useLocation
 import AuthButton from './AuthButton'; // Assumes you have an AuthButton component
 
 function GoogleCalendar() {
+  const location = useLocation();
+  const { sessionId } = location.state || {}; // Access sessionId from location.state
+
   const [gapiInited, setGapiInited] = useState(false);
   const [gisInited, setGisInited] = useState(false);
   const [tokenClient, setTokenClient] = useState(null);
   const [events, setEvents] = useState([]);
 
   // Exchange authorization code for access token
-  const handleAuthCode = useCallback(async (code, state) => {
+  const handleAuthCode = useCallback(async (code) => {
     try {
-      const { sessionId } = JSON.parse(atob(state)); // Decode the state to retrieve the session ID
-      console.log('Session ID:', sessionId); // Log the session ID for debugging
-
       const tokenResponse = await fetch('https://sync-meet.kushankrockz.workers.dev/api/token', {
         method: 'POST',
         headers: {
@@ -49,7 +50,7 @@ function GoogleCalendar() {
       client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
       scope: 'https://www.googleapis.com/auth/calendar.readonly',
       ux_mode: 'popup',
-      callback: (code, state) => handleAuthCode(code, state), // Use handleAuthCode here
+      callback: (code) => handleAuthCode(code), // Use handleAuthCode here
     });
     setTokenClient(tokenClient);
     setGisInited(true);
@@ -71,12 +72,13 @@ function GoogleCalendar() {
 
   // Trigger Google OAuth authorization
   const handleAuthClick = useCallback(() => {
-    if (tokenClient) {
-      const sessionId = ""; // Placeholder for sessionId, retrieve from your storage or pass appropriately
+    if (tokenClient && sessionId) {
       const state = btoa(JSON.stringify({ sessionId })); // Encode session ID into state
       tokenClient.requestCode({ state }); // Pass state with session ID
+    } else {
+      console.error('Token client or session ID is not available'); // Error handling
     }
-  }, [tokenClient]);
+  }, [tokenClient, sessionId]);
 
   // Handle sign-out
   const handleSignoutClick = useCallback(() => {
